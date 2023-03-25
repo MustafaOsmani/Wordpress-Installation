@@ -1,0 +1,96 @@
+#!/bin/bash
+
+#upgrade all installed packages
+
+sudo yum update -y
+
+sudo yum install wget -y
+
+#install repositories
+
+sudo yum install -y epel-release
+
+sudo yum install http://rpms.famillecollet.com/enterprise/remi-release-7.rpm -y
+
+sudo yum-config-manager --enable epel remi-php74
+
+sudo yum repolist enabled
+
+#install LAMP stack
+
+sudo yum install httpd -y
+
+sudo systemctl start httpd
+
+sudo systemctl enable httpd.service
+
+sudo yum install mariadb-server -y
+
+sudo systemctl start mariadb
+
+sudo systemctl enable mariadb.service
+
+sudo mysql
+
+#database
+
+mysql -u root -e "CREATE DATABASE testmusti"
+
+mysql -u root -e "GRANT ALL ON testmusti.* TO 'mustafao'@'localhost' IDENTIFIED BY 'tpfmdb213' WITH GRANT OPTION"
+
+mysql -u root -e "FLUSH PRIVILEGES"
+
+mysql -u root -e "exit"
+
+#installing php
+
+sudo yum install php php-mysql -y
+
+sudo systemctl restart httpd.service
+
+#test php
+
+sudo chown -R centos.centos /var/www/html/
+
+#create database and user for WP
+
+sudo mysql
+
+mysql -u root -e "CREATE DATABASE testpress"
+
+mysql -u root -e "CREATE USER wptestmusti@localhost IDENTIFIED BY 'testpassmo1'"
+
+mysql -u root -e "GRANT ALL PRIVILEGES ON testpress.* TO wptestmusti@localhost IDENTIFIED BY 'testpassmo1'"
+
+mysql -u root -e "FLUSH PRIVILEGES"
+
+mysql -u root -e "exit"
+
+#install WP
+
+sudo yum install php-gd -y
+
+sudo service httpd restart
+
+cd~
+wget http://wordpress.org/latest.tar.gz
+
+tar xzvf latest.tar.gz
+
+sudo rsync -avP ~/wordpress/ /var/www/html/
+
+mkdir /var/www/html/wp-content/uploads
+
+sudo chown -R apache:apache /var/www/html/*
+
+#configure WP
+
+cd /var/www/html
+
+cp wp-config-sample.php wp-config.php
+
+sed -i 's/database_name_here/testpress/' wp-config.php
+
+sed -i 's/username_here/wptestmusti/' wp-config.php
+
+sed -i 's/password_here/testpassmo1/' wp-config.php
